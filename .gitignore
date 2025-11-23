@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+.venv311/
+env/
+venv/
+
+# VS Code settings
+.vscode/
+
+# Playwright / WebArena cache (if any)
+playwright-report/
+playwright/.cache/
+
+# Logs & artifacts
+*.log
+logged_episodes/
+
+# OS-specific
+.DS_Store
+Thumbs.db
