@@ -5,20 +5,20 @@ import json
 from pathlib import Path
 
 def extract_text_from_obs(obs) -> str:
-    """Get a reasonable text string from the observation."""
+
     if isinstance(obs, dict):
         text_part = obs.get("text")
-        # If it's already a string, just use it
+
         if isinstance(text_part, str):
             return text_part
-        # If it's a nested dict, try to flatten node texts
+
         if isinstance(text_part, dict):
             nodes = text_part.get("obs_nodes_info", {})
             lines = []
             for node_id, node in nodes.items():
                 lines.append(node.get("text", ""))
             return "\n".join(lines)
-    # Fallback: just stringify whatever we got
+
     return str(obs)
 
 def dummy_policy(obs_text: str) -> str:
@@ -40,7 +40,7 @@ def serialize_info(step_info: dict) -> dict:
         if k == "url":
             safe[k] = v
         else:
-            # stringify non-serializable objects
+
             safe[k] = str(v)
     return safe
 
