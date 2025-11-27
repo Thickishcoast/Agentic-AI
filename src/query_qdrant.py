@@ -2,12 +2,12 @@ from qdrant_client import QdrantClient, models
 from sentence_transformers import SentenceTransformer
 
 
-COLLECTION_NAME = "web_agent_experiences"  # same name you used when indexing
+COLLECTION_NAME = "web_agent_experiences"  
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 def main():
-    # 1. Connect to Qdrant and load the same embedding model
+    # 1. Connect to Qdrant and load the embedding model
     client = QdrantClient(host="localhost", port=6333)
     model = SentenceTransformer(MODEL_NAME)
 
@@ -21,7 +21,7 @@ def main():
         query=query_vec,
         limit=3,
         with_payload=True,
-        with_vectors=False,  # set True if you also want the stored vectors
+        with_vectors=False,  # set True if you want the stored vectors
     )
 
     # 4. Inspect the results

@@ -1,50 +1,32 @@
 # src/test_webarena.py
+
 from browser_env import ScriptBrowserEnv, create_id_based_action
-import random
 import json
 from pathlib import Path
+import random
 
-def extract_text_from_obs(obs) -> str:
+from agent_llm_policy import llm_policy, extract_text_from_obs
 
-    if isinstance(obs, dict):
-        text_part = obs.get("text")
-
-        if isinstance(text_part, str):
-            return text_part
-
-        if isinstance(text_part, dict):
-            nodes = text_part.get("obs_nodes_info", {})
-            lines = []
-            for node_id, node in nodes.items():
-                lines.append(node.get("text", ""))
-            return "\n".join(lines)
-
-    return str(obs)
-
-def dummy_policy(obs_text: str) -> str:
-    """Placeholder for an LLM policy: just pick a random click."""
-    random_id = random.randint(1, 1000)
-    return f"click [{random_id}]"
 
 def parse_action(action_str: str):
+    """Convert an action string like 'click [10]' into a WebArena action."""
     return create_id_based_action(action_str)
 
+
 def serialize_info(step_info: dict) -> dict:
-    """
-    Make step_info JSON-safe:
-    - Keep 'url' as-is
-    - Stringify everything else
-    """
+    """Make step_info JSON-safe by stringifying non-URL fields."""
     safe = {}
     for k, v in step_info.items():
         if k == "url":
             safe[k] = v
         else:
-
             safe[k] = str(v)
     return safe
 
+
 def run_episode(config_file: str, max_steps: int = 5):
+    task = "Click the 'Learn more' link if present on this page."
+
     env = ScriptBrowserEnv(
         headless=False,
         observation_type="accessibility_tree",
@@ -59,21 +41,28 @@ def run_episode(config_file: str, max_steps: int = 5):
     trajectory = []
 
     for step in range(max_steps):
-        obs_text = extract_text_from_obs(obs)
-        action_str = dummy_policy(obs_text)
-        action = parse_action(action_str)
 
+        obs_text = extract_text_from_obs(obs)
+
+        action_str = llm_policy(task, obs_text)
+
+        print(f"Step {step}, chosen action: {action_str}")
+
+        # 3) Parse and step environment
+        action = parse_action(action_str)
         next_obs, reward, terminated, truncated, step_info = env.step(action)
 
-        trajectory.append({
-            "step": step,
-            "obs_text": obs_text,
-            "action_str": action_str,
-            "reward": float(reward),
-            "terminated": bool(terminated),
-            "truncated": bool(truncated),
-            "info": serialize_info(step_info),
-        })
+        trajectory.append(
+            {
+                "step": step,
+                "obs_text": obs_text,
+                "action_str": action_str,
+                "reward": float(reward),
+                "terminated": bool(terminated),
+                "truncated": bool(truncated),
+                "info": serialize_info(step_info),
+            }
+        )
 
         obs = next_obs
         if terminated or truncated:
@@ -83,8 +72,9 @@ def run_episode(config_file: str, max_steps: int = 5):
     env.close()
     return trajectory
 
+
 def main():
-    config_file = r"external\webarena\config_files\examples\0.json"  # your example.com config
+    config_file = r"external\webarena\config_files\examples\0.json"
     traj = run_episode(config_file=config_file, max_steps=5)
 
     out_dir = Path("logged_episodes")
@@ -95,6 +85,7 @@ def main():
         json.dump(traj, f, indent=2, ensure_ascii=False)
 
     print(f"Saved {len(traj)} steps to {out_path}")
+
 
 if __name__ == "__main__":
     main()

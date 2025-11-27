@@ -36,7 +36,7 @@ def build_text(step: dict) -> str:
 
 
 def main():
-    # 1. Load your logged episode
+    # 1. Load the logged episode
     episode_path = Path("logged_episodes") / "episode_0.json"
     steps = load_trajectory(episode_path)
     print(f"Loaded {len(steps)} steps from {episode_path}")
